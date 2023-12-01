@@ -14,7 +14,7 @@ public class FileTreeItem extends CheckBoxTreeItem<FileWrapper> {
     /**
      * Constructor.
      *
-     * @param file {@link File}
+     * @param fileWrapper {@link FileWrapper}
      */
     public FileTreeItem(FileWrapper fileWrapper) {
         super(fileWrapper);

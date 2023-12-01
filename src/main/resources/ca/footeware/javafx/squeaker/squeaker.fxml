@@ -42,28 +42,23 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ca.footeware.javafx.squeaker.Controller">
    <children>
       <ToolBar prefWidth="200.0">
         <items>
-            <Button fx:id="playButton" mnemonicParsing="false" onAction="#onPlayButtonAction" text="Play" />
-          <Button fx:id="stopButton" alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onStopButtonAction" text="Stop" />
-            <Label fx:id="playingLabel" text="playingLabel">
-               <opaqueInsets>
-                  <Insets />
-               </opaqueInsets>
-            </Label>
+            <Button fx:id="playButton" contentDisplay="CENTER" defaultButton="true" mnemonicParsing="false" onAction="#onPlayButtonAction" prefHeight="48.0" prefWidth="48.0" style="-fx-background-color: transparent;" />
         </items>
       </ToolBar>
       <AnchorPane prefHeight="564.0" prefWidth="1003.0" VBox.vgrow="ALWAYS">
          <children>
-            <SplitPane dividerPositions="0.29797979797979796" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane dividerPositions="0.29797979797979796" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0">
                      <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" minHeight="-Infinity" text="Select music files to add to playlist." textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Label alignment="CENTER" contentDisplay="CENTER" minHeight="-Infinity" text="Select audio files to add to playlist." textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
                            </padding>
@@ -73,19 +68,19 @@
                               <TreeView fx:id="tree" prefWidth="500.0" showRoot="false" />
                            </content>
                         </ScrollPane>
-                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#onAddButtonAction" text="Add to Playlist" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#onAddButtonAction" text="Add to Playlist &gt;&gt;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
                      </children>
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <TableView fx:id="table" onSort="#onTableSortAction" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <TableView fx:id="table" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
                             <TableColumn fx:id="fileColumn" editable="false" prefWidth="99.99999696016312" text="File" />
                               <TableColumn fx:id="trackColumn" editable="false" prefWidth="88.0" text="Track" />
-                            <TableColumn fx:id="artistColumn" editable="false" prefWidth="68.80000305175781" text="Artist" />
                               <TableColumn fx:id="titleColumn" editable="false" prefWidth="123.20001220703125" text="Title" />
+                            <TableColumn fx:id="artistColumn" editable="false" prefWidth="68.80000305175781" text="Artist" />
                               <TableColumn fx:id="albumColumn" editable="false" prefWidth="122.39990234375" text="Album" />
-                              <TableColumn fx:id="yearColumn" prefWidth="96.0" text="Year" />
+                              <TableColumn fx:id="yearColumn" editable="false" prefWidth="96.0" text="Year" />
                               <TableColumn fx:id="genreColumn" editable="false" prefWidth="99.2000732421875" text="Genre" />
                           </columns>
                         </TableView>
@@ -93,6 +88,18 @@
                   </AnchorPane>
               </items>
             </SplitPane>
+            <HBox alignment="BOTTOM_LEFT" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <Label fx:id="playingLabel">
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                     <padding>
+                        <Insets bottom="5.0" left="10.0" right="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+            </HBox>
          </children>
       </AnchorPane>
    </children>

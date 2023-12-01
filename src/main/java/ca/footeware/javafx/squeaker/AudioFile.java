@@ -27,7 +27,7 @@ public class AudioFile extends File {
      */
     public AudioFile(URI uri) {
         super(uri);
-        this.filename = getName();
+        this.filename = super.getName();
     }
 
     /**
