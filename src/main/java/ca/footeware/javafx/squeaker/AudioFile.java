@@ -6,6 +6,8 @@ package ca.footeware.javafx.squeaker;
 
 import java.io.File;
 import java.net.URI;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Extends {@link File} to include audio tags.
@@ -19,6 +21,7 @@ public class AudioFile extends File {
     private String album;
     private String year;
     private String genre;
+    private long seconds;
 
     /**
      * Constructor.
@@ -105,5 +108,20 @@ public class AudioFile extends File {
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public void setSeconds(long seconds) {
+        this.seconds = seconds;
+    }
+
+    public String getFormattedTime() {
+        LocalTime time = LocalTime.ofSecondOfDay(seconds);
+        DateTimeFormatter formatter;
+        if (time.getHour() > 0) {
+            formatter = DateTimeFormatter.ofPattern("hh:mm:ss");
+        } else {
+            formatter = DateTimeFormatter.ofPattern("mm:ss");
+        }
+        return time.format(formatter);
     }
 }

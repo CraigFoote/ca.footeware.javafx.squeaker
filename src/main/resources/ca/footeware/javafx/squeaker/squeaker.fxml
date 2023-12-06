@@ -35,30 +35,87 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ca.footeware.javafx.squeaker.Controller">
    <children>
-      <ToolBar prefWidth="200.0">
-        <items>
-            <Button fx:id="playButton" contentDisplay="CENTER" defaultButton="true" mnemonicParsing="false" onAction="#onPlayButtonAction" prefHeight="48.0" prefWidth="48.0" style="-fx-background-color: transparent;" />
-        </items>
-      </ToolBar>
+      <AnchorPane prefHeight="48.0">
+         <children>
+            <BorderPane prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <left>
+                  <HBox alignment="CENTER_LEFT" BorderPane.alignment="CENTER">
+                     <BorderPane.margin>
+                        <Insets />
+                     </BorderPane.margin>
+                     <children>
+                        <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonAction" style="-fx-background-color: transparent;">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </Button>
+                        <Button fx:id="playButton" mnemonicParsing="false" onAction="#onPlayButtonAction" style="-fx-background-color: transparent;">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </Button>
+                        <Button fx:id="forwardButton" mnemonicParsing="false" onAction="#onForwardButtonAction" style="-fx-background-color: transparent;">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </HBox>
+               </left>
+               <right>
+                  <MenuButton fx:id="menuButton" mnemonicParsing="false" prefHeight="15.0" prefWidth="20.0" style="-fx-background-color: transparent;" BorderPane.alignment="CENTER">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#onAboutButtonAction" text="About" />
+                    </items>
+                     <BorderPane.margin>
+                        <Insets right="10.0" />
+                     </BorderPane.margin>
+                  </MenuButton>
+               </right>
+               <center>
+                  <AnchorPane>
+                     <children>
+                        <Slider layoutX="2.5999984741210938" layoutY="0.9999990463256836" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="80.0" AnchorPane.topAnchor="0.0">
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                        </Slider>
+                        <Label fx:id="timeLabel" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <padding>
+                              <Insets right="20.0" />
+                           </padding>
+                        </Label>
+                     </children>
+                  </AnchorPane>
+               </center>
+            </BorderPane>
+         </children>
+      </AnchorPane>
       <AnchorPane prefHeight="564.0" prefWidth="1003.0" VBox.vgrow="ALWAYS">
          <children>
             <SplitPane dividerPositions="0.29797979797979796" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0">
                      <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" minHeight="-Infinity" text="Select audio files to add to playlist." textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Label alignment="CENTER" contentDisplay="CENTER" minHeight="-Infinity" text="Check audio files to add to playlist." textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
                            </padding>
@@ -75,13 +132,13 @@
                      <children>
                         <TableView fx:id="table" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
-                            <TableColumn fx:id="fileColumn" editable="false" prefWidth="99.99999696016312" text="File" />
-                              <TableColumn fx:id="trackColumn" editable="false" prefWidth="88.0" text="Track" />
-                              <TableColumn fx:id="titleColumn" editable="false" prefWidth="123.20001220703125" text="Title" />
-                            <TableColumn fx:id="artistColumn" editable="false" prefWidth="68.80000305175781" text="Artist" />
-                              <TableColumn fx:id="albumColumn" editable="false" prefWidth="122.39990234375" text="Album" />
-                              <TableColumn fx:id="yearColumn" editable="false" prefWidth="96.0" text="Year" />
-                              <TableColumn fx:id="genreColumn" editable="false" prefWidth="99.2000732421875" text="Genre" />
+                            <TableColumn fx:id="fileColumn" editable="false" prefWidth="163.999966442585" text="File" />
+                              <TableColumn fx:id="trackColumn" editable="false" minWidth="6.4000244140625" prefWidth="79.20001220703125" text="Track" />
+                              <TableColumn fx:id="titleColumn" editable="false" prefWidth="139.19996643066406" text="Title" />
+                            <TableColumn fx:id="artistColumn" editable="false" prefWidth="78.4000244140625" text="Artist" />
+                              <TableColumn fx:id="albumColumn" editable="false" prefWidth="167.2000732421875" text="Album" />
+                              <TableColumn fx:id="yearColumn" editable="false" prefWidth="97.5999755859375" text="Year" />
+                              <TableColumn fx:id="genreColumn" editable="false" prefWidth="128.800048828125" text="Genre" />
                           </columns>
                         </TableView>
                      </children>
@@ -90,7 +147,7 @@
             </SplitPane>
             <HBox alignment="BOTTOM_LEFT" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                <children>
-                  <Label fx:id="playingLabel">
+                  <Label fx:id="statusLabel">
                      <opaqueInsets>
                         <Insets />
                      </opaqueInsets>
