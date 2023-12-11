@@ -6,14 +6,14 @@ import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
 import javafx.collections.ObservableSet;
 import javafx.concurrent.Service;
@@ -33,7 +33,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
@@ -45,16 +44,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 
 public class Controller implements Initializable {
 
@@ -90,13 +88,15 @@ public class Controller implements Initializable {
     private TableColumn<AudioFile, String> genreColumn;
 
     private TableViewSelectionModel<AudioFile> tableSelectionModel;
-    private MediaPlayer mediaPlayer;
     private ImageView playImageView;
     private ImageView pauseImageView;
-    private ImageView menuImageView;
-    private boolean playing = false;
-    private boolean paused = false;
-    private int currentRowIndex = -1;
+    ;
+    private AtomicBoolean playing = new AtomicBoolean(false);
+    private AtomicBoolean paused = new AtomicBoolean(false);
+    private AtomicInteger currentRowIndex = new AtomicInteger(0);
+    private AudioFile currentAudioFile;
+    private AudioFormat currentAudioFormat;
+    private Clip clip;
 
     @FXML
     private void onAddButtonAction(ActionEvent event) {
@@ -135,41 +135,29 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    private void onPlayButtonAction(ActionEvent event) {
-        AudioFile selectedItem = tableSelectionModel.getSelectedItem();
-        currentRowIndex = tableSelectionModel.getSelectedIndex();
-        System.out.println("ca.footeware.javafx.squeaker.Controller.onPlayButtonAction(), selected=" + selectedItem);
-        if (selectedItem == null) {
+    private void onPlayButtonAction(ActionEvent event) throws MalformedURLException {
+        currentAudioFile = tableSelectionModel.getSelectedItem();
+        currentRowIndex.set(tableSelectionModel.getSelectedIndex());
+        if (currentAudioFile == null) {
             if (!table.getItems().isEmpty()) {
-                tableSelectionModel.select(0);
-                selectedItem = tableSelectionModel.getSelectedItem();
+                tableSelectionModel.clearAndSelect(0);
+                currentAudioFile = tableSelectionModel.getSelectedItem();
+                currentRowIndex.set(tableSelectionModel.getSelectedIndex());
             }
         }
-        if (selectedItem != null) {
-            System.out.println("ca.footeware.javafx.squeaker.Controller.onPlayButtonAction(), selectedItem=" + selectedItem);
-            if (playing) {
-                // pause
-                playing = false;
-                paused = true;
-                mediaPlayer.pause();
-                playButton.setGraphic(playImageView);
+        if (currentAudioFile != null) {
+            // if playing pause
+            if (playing.get()) {
+                pause();
             } else {
-                // not playing, play if paused else play new
-                if (paused) {
-                    mediaPlayer.play();
-                    paused = false;
-                    playing = true;
-                    playButton.setGraphic(pauseImageView);
+                // not playing, unpause if paused else play new
+                if (paused.get()) {
+                    unpause();
                 } else {
-                    // play new file from start
-                    System.out.println("ca.footeware.javafx.squeaker.Controller.onPlayButtonAction(), playing...");
-                    playNewFile(selectedItem);
-                    playButton.setGraphic(pauseImageView);
-                    playing = true;
-                    paused = false;
+                    // play current file from start
+                    play();
                 }
-                statusLabel.setText(selectedItem.getFilename());
-            }
+            };
         }
     }
 
@@ -203,35 +191,31 @@ public class Controller implements Initializable {
 
     @FXML
     private void onBackButtonAction(ActionEvent e) {
-        System.out.println("ca.footeware.javafx.squeaker.Controller.onBackButtonAction(), current=" + currentRowIndex);
-        if (currentRowIndex > 0) {
-            if (playing || paused) {
-                mediaPlayer.stop();
+        if (currentRowIndex.get() > 0) {
+            if (playing.get() || paused.get()) {
+                // playing or paused
+                stop();
             }
-            currentRowIndex--;
-            tableSelectionModel.select(currentRowIndex);
-            final AudioFile selectedItem = tableSelectionModel.getSelectedItem();
-            System.out.println("ca.footeware.javafx.squeaker.Controller.onBackButtonAction(), playing " + selectedItem);
-            playNewFile(selectedItem);
-            statusLabel.setText(selectedItem.getFilename());
-            playing = true;
-            paused = false;
+            // select previous row
+            currentRowIndex.set(currentRowIndex.get() - 1);
+            tableSelectionModel.clearAndSelect(currentRowIndex.get());
+            currentAudioFile = tableSelectionModel.getSelectedItem();
+            play();
         }
     }
 
     @FXML
     private void onForwardButtonAction(ActionEvent e) {
-        if (currentRowIndex < table.getItems().size() - 1) {
-            if (playing || paused) {
-                mediaPlayer.stop();
+        if (currentRowIndex.get() < table.getItems().size() - 1) {
+            // playing or paused
+            if (playing.get() || paused.get()) {
+                stop();
             }
-            currentRowIndex++;
-            tableSelectionModel.select(currentRowIndex);
-            final AudioFile selectedItem = tableSelectionModel.getSelectedItem();
-            playNewFile(selectedItem);
-            statusLabel.setText(selectedItem.getFilename());
-            playing = true;
-            paused = false;
+            // select next row
+            currentRowIndex.set(currentRowIndex.get() + 1);
+            tableSelectionModel.clearAndSelect(currentRowIndex.get());
+            currentAudioFile = tableSelectionModel.getSelectedItem();
+            play();
         }
     }
 
@@ -252,7 +236,7 @@ public class Controller implements Initializable {
 
         // menu button
         final Image menuImage = new Image("menubutton.png");
-        menuImageView = new ImageView(menuImage);
+        final ImageView menuImageView = new ImageView(menuImage);
         menuButton.setGraphic(menuImageView);
 
         // tree
@@ -277,7 +261,7 @@ public class Controller implements Initializable {
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
         tableSelectionModel = table.getSelectionModel();
-        tableSelectionModel.setSelectionMode(SelectionMode.SINGLE.SINGLE);
+        tableSelectionModel.setSelectionMode(SelectionMode.SINGLE);
         // table context menu
         final ContextMenu contextMenu = new ContextMenu();
         // remove selected
@@ -322,70 +306,70 @@ public class Controller implements Initializable {
         }
     }
 
-    private File mp3ToWav(File mp3) throws UnsupportedAudioFileException, IOException {
-        System.out.println("ca.footeware.javafx.squeaker.Controller.mp3ToWav(), mp3="+mp3);
-        final AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3);
-        System.out.println("ca.footeware.javafx.squeaker.Controller.mp3ToWav(), mp3Stream="+mp3Stream);
-        final AudioFormat sourceFormat = mp3Stream.getFormat();
-        System.out.println("ca.footeware.javafx.squeaker.Controller.mp3ToWav(), format="+sourceFormat);
-        final AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
-                sourceFormat.getSampleRate(),
-                16,
-                sourceFormat.getChannels(),
-                sourceFormat.getChannels() * 2,
-                sourceFormat.getSampleRate(),
-                false);
-        System.out.println("ca.footeware.javafx.squeaker.Controller.mp3ToWav(), converting to wav...");
-        final AudioInputStream converted = AudioSystem.getAudioInputStream(convertFormat, mp3Stream);
-        final String tempFolder = System.getProperty("java.io.tmpdir");
-        final var newFile = new File(tempFolder + "/squeaker.wav");
-        AudioSystem.write(converted, AudioFileFormat.Type.WAVE, newFile);
-        return newFile;
-    }
-
-    private void playNewFile(AudioFile audioFile) {
-        final Service process = new Service() {
+    private void play() {
+        final Task<Void> task = new Task<Void>() {
             @Override
-            protected Task createTask() {
-                return new Task() {
-                    @Override
-                    protected URI call() throws Exception {
-                        System.out.println(".call()");
-                        // convert to wav because mp3 doesn't play
-                        final File wav = mp3ToWav(audioFile);
-                        System.out.println(".call(), wav=" + wav.toURI());
-                        return wav.toURI();
-                    }
-                };
+            protected Void call() throws Exception {
+                try (AudioInputStream inputStream = AudioSystem.getAudioInputStream(currentAudioFile);) {
+                    Platform.runLater(() -> playButton.setGraphic(pauseImageView));
+                    playing.set(true);
+                    paused.set(false);
+                    final AudioFormat baseFormat = inputStream.getFormat();
+                    currentAudioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+                            baseFormat.getSampleRate(),
+                            16,
+                            baseFormat.getChannels(),
+                            baseFormat.getChannels() * 2,
+                            baseFormat.getSampleRate(),
+                            false);
+                    final AudioInputStream decodedInputStream = AudioSystem.getAudioInputStream(currentAudioFormat, inputStream);
+                    clip = AudioSystem.getClip();
+                    clip.open(decodedInputStream);
+                    clip.start();
+                    decodedInputStream.close();
+                    clip.addLineListener(new LineListener() {
+                        @Override
+                        public void update(LineEvent event) {
+                            // end of file
+                            if (LineEvent.Type.STOP.equals(event.getType()) && playing.get() && !paused.get()) {
+                                // play next if exists
+                                if (currentRowIndex.get() + 1 < table.getItems().size()) {
+                                    currentRowIndex.set(currentRowIndex.get() + 1);
+                                    tableSelectionModel.clearAndSelect(currentRowIndex.get());
+                                    currentAudioFile = tableSelectionModel.getSelectedItem();
+                                    play();
+                                } else {
+                                    Platform.runLater(() -> playButton.setGraphic(playImageView));
+                                }
+                            }
+                        }
+                    });
+                    return null;
+                }
             }
         };
-        process.setOnSucceeded(e -> {
-            // get value returned from process
-            final URI uri = (URI) process.getValue();
-            System.out.println("ca.footeware.javafx.squeaker.Controller.playNewFile(), uri=" + uri);
-            final Media media = new Media(uri.toString());
-            System.out.println("ca.footeware.javafx.squeaker.Controller.playNewFile(), media=" + media);
-            mediaPlayer = new MediaPlayer(media);
-            System.out.println("ca.footeware.javafx.squeaker.Controller.playNewFile(), mediaPlayer=" + mediaPlayer);
-            mediaPlayer.setAutoPlay(true);
-            statusLabel.setText(audioFile.getFilename());
-            timeLabel.setText(audioFile.getFormattedTime());
-            mediaPlayer.setOnEndOfMedia(new Runnable() {
-                @Override
-                public void run() {
-                    if (table.getItems().size() > currentRowIndex + 1) {
-                        currentRowIndex++;
-                        tableSelectionModel.select(currentRowIndex);
-                        final AudioFile selectedItem = tableSelectionModel.getSelectedItem();
-                        playNewFile(selectedItem);
-                    } else {
-                        playButton.setGraphic(playImageView);
-                        playing = false;
-                    }
-                }
-            });
-        });
-        System.out.println("ca.footeware.javafx.squeaker.Controller.playNewFile(), process starting...");
-        process.start();
+        //start Task
+        new Thread(task).start();
+    }
+
+    private void stop() {
+        paused.set(false);
+        playing.set(false);
+        clip.stop();
+        Platform.runLater(() -> playButton.setGraphic(playImageView));
+    }
+
+    private void pause() {
+        playing.set(false);
+        paused.set(true);
+        clip.stop();
+        Platform.runLater(() -> playButton.setGraphic(playImageView));
+    }
+
+    private void unpause() {
+        playing.set(true);
+        paused.set(false);
+        clip.start();
+        Platform.runLater(() -> playButton.setGraphic(pauseImageView));
     }
 }
