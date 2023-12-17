@@ -15,6 +15,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableSet;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -33,6 +35,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
@@ -44,15 +47,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
+import javafx.util.Duration;
 
 public class Controller implements Initializable {
 
@@ -68,6 +68,8 @@ public class Controller implements Initializable {
     private Label statusLabel;
     @FXML
     private Label timeLabel;
+    @FXML
+    private Slider slider;
     @FXML
     private TreeView tree;
     @FXML
@@ -86,17 +88,17 @@ public class Controller implements Initializable {
     private TableColumn<AudioFile, String> yearColumn;
     @FXML
     private TableColumn<AudioFile, String> genreColumn;
+    @FXML
+    private TableColumn<AudioFile, String> durationColumn;
 
     private TableViewSelectionModel<AudioFile> tableSelectionModel;
     private ImageView playImageView;
     private ImageView pauseImageView;
-    ;
-    private AtomicBoolean playing = new AtomicBoolean(false);
-    private AtomicBoolean paused = new AtomicBoolean(false);
-    private AtomicInteger currentRowIndex = new AtomicInteger(0);
+    private final AtomicBoolean playing = new AtomicBoolean(false);
+    private final AtomicBoolean paused = new AtomicBoolean(false);
+    private final AtomicInteger currentRowIndex = new AtomicInteger(0);
     private AudioFile currentAudioFile;
-    private AudioFormat currentAudioFormat;
-    private Clip clip;
+    private MediaPlayer player;
 
     @FXML
     private void onAddButtonAction(ActionEvent event) {
@@ -224,15 +226,19 @@ public class Controller implements Initializable {
         // back button
         backButton.setGraphic(new ImageView(new Image("backbutton.png")));
 
-        // forward button
-        forwardButton.setGraphic(new ImageView(new Image("forwardbutton.png")));
-
         // play/pause button
         final Image playImage = new Image("playbutton.png");
         final Image pauseImage = new Image("pausebutton.png");
         playImageView = new ImageView(playImage);
         pauseImageView = new ImageView(pauseImage);
         playButton.setGraphic(playImageView);
+
+        // forward button
+        forwardButton.setGraphic(new ImageView(new Image("forwardbutton.png")));
+
+        // slider
+        slider.valueProperty().addListener(this::sliderChanged);
+        slider.setSnapToTicks(true);
 
         // menu button
         final Image menuImage = new Image("menubutton.png");
@@ -260,6 +266,7 @@ public class Controller implements Initializable {
         albumColumn.setCellValueFactory(new PropertyValueFactory<>("album"));
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
+        durationColumn.setCellValueFactory(new PropertyValueFactory<>("formattedTime"));
         tableSelectionModel = table.getSelectionModel();
         tableSelectionModel.setSelectionMode(SelectionMode.SINGLE);
         // table context menu
@@ -291,8 +298,8 @@ public class Controller implements Initializable {
             final Mp3File mp3File = new Mp3File(audioFile.getPath());
             if (mp3File.hasId3v2Tag()) {
                 final ID3v2 tag = mp3File.getId3v2Tag();
-//              byte[] imageData = id3v2tag.getAlbumImage();
-//              BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageData));
+                //              byte[] imageData = id3v2tag.getAlbumImage();
+                //              BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageData));
                 audioFile.setTrack(tag.getTrack());
                 audioFile.setTitle(tag.getTitle());
                 audioFile.setArtist(tag.getArtist());
@@ -306,70 +313,53 @@ public class Controller implements Initializable {
         }
     }
 
+    private void sliderChanged(ObservableValue<? extends Number> property, Number oldValue, Number newValue) {
+        Platform.runLater(() -> timeLabel.setText(Utils.formatTime(newValue.longValue())
+                + " : " + Utils.formatTime(currentAudioFile.getSeconds())));
+    }
+
     private void play() {
         final Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                try (AudioInputStream inputStream = AudioSystem.getAudioInputStream(currentAudioFile);) {
-                    Platform.runLater(() -> playButton.setGraphic(pauseImageView));
-                    playing.set(true);
-                    paused.set(false);
-                    final AudioFormat baseFormat = inputStream.getFormat();
-                    currentAudioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
-                            baseFormat.getSampleRate(),
-                            16,
-                            baseFormat.getChannels(),
-                            baseFormat.getChannels() * 2,
-                            baseFormat.getSampleRate(),
-                            false);
-                    final AudioInputStream decodedInputStream = AudioSystem.getAudioInputStream(currentAudioFormat, inputStream);
-                    clip = AudioSystem.getClip();
-                    clip.open(decodedInputStream);
-                    clip.start();
-                    decodedInputStream.close();
-                    clip.addLineListener(new LineListener() {
-                        @Override
-                        public void update(LineEvent event) {
-                            // end of file
-                            if (LineEvent.Type.STOP.equals(event.getType()) && playing.get() && !paused.get()) {
-                                // play next if exists
-                                if (currentRowIndex.get() + 1 < table.getItems().size()) {
-                                    currentRowIndex.set(currentRowIndex.get() + 1);
-                                    tableSelectionModel.clearAndSelect(currentRowIndex.get());
-                                    currentAudioFile = tableSelectionModel.getSelectedItem();
-                                    play();
-                                } else {
-                                    Platform.runLater(() -> playButton.setGraphic(playImageView));
-                                }
-                            }
-                        }
-                    });
-                    return null;
-                }
+                final Media media = new Media(currentAudioFile.toURI().toURL().toExternalForm());
+                player = new MediaPlayer(media);
+                slider.setMin(0.0);
+                slider.setMax(currentAudioFile.getSeconds());
+                slider.setValue(0.0);
+                player.currentTimeProperty().addListener(new ChangeListener<Duration>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Duration> ov, Duration t, Duration t1) {
+                        slider.setValue(t1.toSeconds());
+                    }
+                });
+                player.play();
+                playing.set(true);
+                paused.set(false);
+                return null;
             }
         };
-        //start Task
         new Thread(task).start();
     }
 
     private void stop() {
+        Platform.runLater(() -> playButton.setGraphic(playImageView));
+        player.stop();
         paused.set(false);
         playing.set(false);
-        clip.stop();
-        Platform.runLater(() -> playButton.setGraphic(playImageView));
     }
 
     private void pause() {
+        Platform.runLater(() -> playButton.setGraphic(playImageView));
+        player.pause();
         playing.set(false);
         paused.set(true);
-        clip.stop();
-        Platform.runLater(() -> playButton.setGraphic(playImageView));
     }
 
     private void unpause() {
+        Platform.runLater(() -> playButton.setGraphic(pauseImageView));
+        player.play();
         playing.set(true);
         paused.set(false);
-        clip.start();
-        Platform.runLater(() -> playButton.setGraphic(pauseImageView));
     }
 }
