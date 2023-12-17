@@ -5,7 +5,7 @@ import java.util.Comparator;
 import javafx.scene.control.TreeItem;
 
 /**
- * Sort folders before files then sorted alphabetically.
+ * Sort folders before files then sort alphabetically.
  */
 public class FileTreeItemComparator implements Comparator<TreeItem<FileWrapper>> {
 

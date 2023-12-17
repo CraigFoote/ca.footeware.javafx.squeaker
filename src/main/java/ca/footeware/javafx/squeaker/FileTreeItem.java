@@ -46,7 +46,7 @@ public class FileTreeItem extends CheckBoxTreeItem<FileWrapper> {
                     return true;
                 } else {
                     String name = child.getName().toLowerCase();
-//                    return name.endsWith(".mp3") || name.endsWith(".flac");
+// TODO                    return name.endsWith(".mp3") || name.endsWith(".flac");
                     return name.endsWith(".mp3");
                 }
             });

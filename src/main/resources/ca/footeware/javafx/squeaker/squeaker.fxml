@@ -93,7 +93,7 @@
                <center>
                   <AnchorPane>
                      <children>
-                        <Slider layoutX="2.5999984741210938" layoutY="0.9999990463256836" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="80.0" AnchorPane.topAnchor="0.0">
+                        <Slider fx:id="slider" layoutX="2.5999984741210938" layoutY="0.9999990463256836" maxWidth="1.7976931348623157E308" prefHeight="48.0" prefWidth="1063.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="108.0" AnchorPane.topAnchor="0.0">
                            <opaqueInsets>
                               <Insets />
                            </opaqueInsets>
@@ -137,8 +137,9 @@
                               <TableColumn fx:id="titleColumn" editable="false" prefWidth="139.19996643066406" text="Title" />
                             <TableColumn fx:id="artistColumn" editable="false" prefWidth="78.4000244140625" text="Artist" />
                               <TableColumn fx:id="albumColumn" editable="false" prefWidth="167.2000732421875" text="Album" />
-                              <TableColumn fx:id="yearColumn" editable="false" prefWidth="97.5999755859375" text="Year" />
-                              <TableColumn fx:id="genreColumn" editable="false" prefWidth="128.800048828125" text="Genre" />
+                              <TableColumn fx:id="yearColumn" editable="false" prefWidth="44.00018310546875" text="Year" />
+                              <TableColumn fx:id="genreColumn" editable="false" prefWidth="90.4000244140625" text="Genre" />
+                              <TableColumn fx:id="durationColumn" editable="false" prefWidth="168.7999267578125" text="Duration" />
                           </columns>
                         </TableView>
                      </children>

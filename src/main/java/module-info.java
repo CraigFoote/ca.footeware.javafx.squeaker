@@ -5,9 +5,6 @@ module ca.footeware.javafx.squeaker {
     requires java.base;
     requires java.desktop;
     requires mp3agic;
-    requires jlayer;
-    requires tritonus.share;
-    requires mp3spi;
 
     opens ca.footeware.javafx.squeaker to javafx.fxml;
     exports ca.footeware.javafx.squeaker;

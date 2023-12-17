@@ -6,8 +6,7 @@ package ca.footeware.javafx.squeaker;
 
 import java.io.File;
 import java.net.URI;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import javafx.scene.media.Media;
 
 /**
  * Extends {@link File} to include audio tags.
@@ -22,6 +21,7 @@ public class AudioFile extends File {
     private String year;
     private String genre;
     private long seconds;
+    private Media media;
 
     /**
      * Constructor.
@@ -31,27 +31,6 @@ public class AudioFile extends File {
     public AudioFile(URI uri) {
         super(uri);
         this.filename = super.getName();
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param uri {@link URI}
-     * @param track {@link String}
-     * @param artist {@link String}
-     * @param title {@link String}
-     * @param album {@link String}
-     * @param year {@link String}
-     * @param genre {@link String}
-     */
-    public AudioFile(URI uri, String track, String artist, String title, String album, String year, String genre) {
-        this(uri);
-        this.track = track;
-        this.artist = artist;
-        this.title = title;
-        this.album = album;
-        this.year = year;
-        this.genre = genre;
     }
 
     public String getTrack() {
@@ -114,14 +93,19 @@ public class AudioFile extends File {
         this.seconds = seconds;
     }
 
+    public long getSeconds() {
+        return seconds;
+    }
+
     public String getFormattedTime() {
-        LocalTime time = LocalTime.ofSecondOfDay(seconds);
-        DateTimeFormatter formatter;
-        if (time.getHour() > 0) {
-            formatter = DateTimeFormatter.ofPattern("hh:mm:ss");
-        } else {
-            formatter = DateTimeFormatter.ofPattern("mm:ss");
-        }
-        return time.format(formatter);
+        return Utils.formatTime(seconds);
+    }
+
+    public void setMedia(Media media) {
+        this.media = media;
+    }
+
+    public Media getMedia() {
+        return media;
     }
 }

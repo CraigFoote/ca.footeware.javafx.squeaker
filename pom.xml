@@ -10,37 +10,28 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <javafx.version>22-ea+16</javafx.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>21</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>21</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>21</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.soundlibs</groupId>
-            <artifactId>mp3spi</artifactId>
-            <version>1.9.5.4</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>com.mpatric</groupId>
             <artifactId>mp3agic</artifactId>
             <version>0.9.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.soundlibs</groupId>
-            <artifactId>tritonus-share</artifactId>
-            <version>0.3.7.4</version>
         </dependency>
     </dependencies>
     <build>
@@ -93,51 +84,6 @@
                                     <moduleInfoSource>
                                         module mp3agic {
                                         exports com.mpatric.mp3agic;
-                                        }
-                                    </moduleInfoSource>
-                                </module>
-                                <module>
-                                    <artifact>
-                                        <groupId>com.googlecode.soundlibs</groupId>
-                                        <artifactId>jlayer</artifactId>
-                                        <version>1.0.1.4</version>
-                                    </artifact>
-                                    <moduleInfoSource>
-                                        module jlayer {
-                                        requires transitive java.desktop;
-                                        exports javazoom.jl.decoder;
-                                        }
-                                    </moduleInfoSource>
-                                </module>
-                                <module>
-                                    <artifact>
-                                        <groupId>com.googlecode.soundlibs</groupId>
-                                        <artifactId>mp3spi</artifactId>
-                                        <version>1.9.5.4</version>
-                                    </artifact>
-                                    <moduleInfoSource>
-                                        module mp3spi {
-                                        requires jlayer;
-                                        requires tritonus.share;
-                                        requires transitive java.desktop;
-                                        provides javax.sound.sampled.spi.FormatConversionProvider with javazoom.spi.mpeg.sampled.convert.MpegFormatConversionProvider;
-                                        provides javax.sound.sampled.spi.AudioFileReader with javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
-                                        }
-                                    </moduleInfoSource>
-                                </module>
-                                <module>
-                                    <artifact>
-                                        <groupId>com.googlecode.soundlibs</groupId>
-                                        <artifactId>tritonus-share</artifactId>
-                                        <version>0.3.7.4</version>
-                                    </artifact>
-                                    <moduleInfoSource>
-                                        module tritonus.share {
-                                        requires transitive java.desktop;
-                                        exports org.tritonus.share.sampled.file;
-                                        exports org.tritonus.share;
-                                        exports org.tritonus.share.sampled.convert;
-                                        exports org.tritonus.share.sampled;
                                         }
                                     </moduleInfoSource>
                                 </module>
