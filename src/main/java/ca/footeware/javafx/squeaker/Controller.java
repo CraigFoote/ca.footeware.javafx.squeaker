@@ -5,6 +5,7 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +33,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -39,6 +41,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
@@ -71,9 +74,9 @@ public class Controller implements Initializable {
     @FXML
     private Slider slider;
     @FXML
-    private TreeView tree;
+    private TreeView fileTreeView;
     @FXML
-    private TableView<AudioFile> table;
+    private TableView<AudioFile> tableView;
     @FXML
     private TableColumn<AudioFile, String> fileColumn;
     @FXML
@@ -90,7 +93,10 @@ public class Controller implements Initializable {
     private TableColumn<AudioFile, String> genreColumn;
     @FXML
     private TableColumn<AudioFile, String> durationColumn;
+    @FXML
+    private ListView<PlayList> playListView;
 
+    private static final String APP_FOLDER = System.getProperty("user.home") + "/.local/share/squeaker/";
     private TableViewSelectionModel<AudioFile> tableSelectionModel;
     private ImageView playImageView;
     private ImageView pauseImageView;
@@ -99,6 +105,50 @@ public class Controller implements Initializable {
     private final AtomicInteger currentRowIndex = new AtomicInteger(0);
     private AudioFile currentAudioFile;
     private MediaPlayer player;
+
+    @FXML
+    private void onLoadPlaylistButtonAction(ActionEvent action) {
+
+    }
+
+    @FXML
+    private void onSavePlaylistButtonAction(ActionEvent event) {
+        FileWriter fileWriter = null;
+        try {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setHeaderText(null);
+            dialog.setTitle("Save Playlist");
+            dialog.setContentText("Enter a name for this new playlist.");
+            final Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+            okButton.addEventFilter(ActionEvent.ACTION, ae -> {
+                if (!playlistNameIsValid(dialog.getEditor().getText())) {
+                    ae.consume();
+                    dialog.setContentText("That name already exists, please choose another.");
+                }
+            });
+            dialog.showAndWait();
+            String filename = dialog.getEditor().getText() + ".m3u";
+            File folder = new File(APP_FOLDER + "playlists/");
+            folder.mkdirs();
+            String pathname = folder.getPath() + File.separator + filename;
+            PlayList playList = new PlayList(pathname);
+            playList.createNewFile();
+            fileWriter = new FileWriter(playList, false);
+            for (AudioFile file : tableView.getItems()) {
+                playList.getFiles().add(file);
+                fileWriter.write(file.getPath() + "\n");
+            }
+            playListView.getItems().add(playList);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                fileWriter.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
     @FXML
     private void onAddButtonAction(ActionEvent event) {
@@ -119,7 +169,7 @@ public class Controller implements Initializable {
                             fillTags(audioFile);
                             final int finalCunt = ++cunt;
                             Platform.runLater(() -> {
-                                table.getItems().add(audioFile);
+                                tableView.getItems().add(audioFile);
                                 statusLabel.setText(finalCunt + " of " + selectedSet.size() + " added");
                             });
                         }
@@ -129,8 +179,8 @@ public class Controller implements Initializable {
             }
         };
         process.setOnSucceeded(e -> {
-            table.getSortOrder().add(fileColumn);
-            table.sort();
+            tableView.getSortOrder().add(fileColumn);
+            tableView.sort();
             SelectionManager.clear();
         });
         process.start();
@@ -141,7 +191,7 @@ public class Controller implements Initializable {
         currentAudioFile = tableSelectionModel.getSelectedItem();
         currentRowIndex.set(tableSelectionModel.getSelectedIndex());
         if (currentAudioFile == null) {
-            if (!table.getItems().isEmpty()) {
+            if (!tableView.getItems().isEmpty()) {
                 tableSelectionModel.clearAndSelect(0);
                 currentAudioFile = tableSelectionModel.getSelectedItem();
                 currentRowIndex.set(tableSelectionModel.getSelectedIndex());
@@ -208,7 +258,7 @@ public class Controller implements Initializable {
 
     @FXML
     private void onForwardButtonAction(ActionEvent e) {
-        if (currentRowIndex.get() < table.getItems().size() - 1) {
+        if (currentRowIndex.get() < tableView.getItems().size() - 1) {
             // playing or paused
             if (playing.get() || paused.get()) {
                 stop();
@@ -245,7 +295,7 @@ public class Controller implements Initializable {
         final ImageView menuImageView = new ImageView(menuImage);
         menuButton.setGraphic(menuImageView);
 
-        // tree
+        // file tree
         final TreeItem<FileWrapper> root = new TreeItem<>(null);
         final Iterable<Path> rootFolderPaths = FileSystems.getDefault().getRootDirectories();
         for (Path rootFolderPath : rootFolderPaths) {
@@ -254,9 +304,9 @@ public class Controller implements Initializable {
             root.getChildren().add(rootTreeItem);
         }
         root.setExpanded(true);
-        tree.setRoot(root);
-        tree.setShowRoot(false);
-        tree.setCellFactory(CheckBoxTreeCell.<String>forTreeView());
+        fileTreeView.setRoot(root);
+        fileTreeView.setShowRoot(false);
+        fileTreeView.setCellFactory(CheckBoxTreeCell.<String>forTreeView());
 
         // table
         fileColumn.setCellValueFactory(new PropertyValueFactory<>("filename"));
@@ -267,15 +317,15 @@ public class Controller implements Initializable {
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("formattedTime"));
-        tableSelectionModel = table.getSelectionModel();
+        tableSelectionModel = tableView.getSelectionModel();
         tableSelectionModel.setSelectionMode(SelectionMode.SINGLE);
         // table context menu
         final ContextMenu contextMenu = new ContextMenu();
         // remove selected
         final MenuItem removeSelectedMenuItem = new MenuItem("Remove selected");
         removeSelectedMenuItem.setOnAction((event) -> {
-            AudioFile selectedItem = tableSelectionModel.getSelectedItem();
-            table.getItems().remove(selectedItem);
+            final AudioFile selectedItem = tableSelectionModel.getSelectedItem();
+            tableView.getItems().remove(selectedItem);
         });
         // remove all
         final MenuItem removeAllMenuItem = new MenuItem("Remove all");
@@ -286,11 +336,11 @@ public class Controller implements Initializable {
             alert.setContentText("Remove all items?");
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == ButtonType.OK) {
-                table.getItems().clear();
+                tableView.getItems().clear();
             }
         });
         contextMenu.getItems().addAll(removeSelectedMenuItem, removeAllMenuItem);
-        table.setContextMenu(contextMenu);
+        tableView.setContextMenu(contextMenu);
     }
 
     private void fillTags(AudioFile audioFile) {
@@ -333,6 +383,7 @@ public class Controller implements Initializable {
                         slider.setValue(t1.toSeconds());
                     }
                 });
+                Platform.runLater(() -> playButton.setGraphic(pauseImageView));
                 player.play();
                 playing.set(true);
                 paused.set(false);
@@ -361,5 +412,16 @@ public class Controller implements Initializable {
         player.play();
         playing.set(true);
         paused.set(false);
+    }
+
+    private boolean playlistNameIsValid(String name) {
+        File file = new File(APP_FOLDER + "playlists/");
+        String[] existingNamesArray = file.list((File dir, String name1) -> name1.endsWith(".m3u"));
+        for (String existingName : existingNamesArray) {
+            if (existingName.equals(name + ".m3u")) {
+                return false;
+            }
+        }
+        return true;
     }
 }
