@@ -7,7 +7,7 @@ import javafx.scene.control.TreeItem;
 /**
  * Sort folders before files then sort alphabetically.
  */
-public class FileTreeItemComparator implements Comparator<TreeItem<FileWrapper>> {
+public class FileTreeItemComparator implements Comparator<TreeItem<File>> {
 
     /**
      * Constructor.
@@ -17,7 +17,7 @@ public class FileTreeItemComparator implements Comparator<TreeItem<FileWrapper>>
     }
 
     @Override
-    public int compare(TreeItem<FileWrapper> o1, TreeItem<FileWrapper> o2) {
+    public int compare(TreeItem<File> o1, TreeItem<File> o2) {
         int result;
         if (o1.isLeaf() && !o2.isLeaf()) {
             result = 1;

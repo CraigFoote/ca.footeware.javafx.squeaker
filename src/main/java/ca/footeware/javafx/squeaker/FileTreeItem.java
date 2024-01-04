@@ -7,23 +7,26 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 
-public class FileTreeItem extends CheckBoxTreeItem<FileWrapper> {
+public class FileTreeItem extends CheckBoxTreeItem<File> {
 
-    private ObservableList<TreeItem<FileWrapper>> children;
+    private ObservableList<TreeItem<File>> children;
 
     /**
      * Constructor.
      *
-     * @param fileWrapper {@link FileWrapper}
+     * @param file {@link File}
      */
-    public FileTreeItem(FileWrapper fileWrapper) {
-        super(fileWrapper);
+    public FileTreeItem(File file) {
+        super(file);
         this.selectedProperty().addListener(
                 (ObservableValue<? extends Boolean> ov, Boolean oldValue, Boolean newValue) -> {
+                    // ignore folder selection and use children's selection instead
                     if (isLeaf()) {
+                        // if newValue is true, this FileTreeItem was selected
                         if (newValue) {
                             SelectionManager.addSelectedItem(this);
                         } else {
+                            // else it was deselected
                             SelectionManager.removeSelectedItem(this);
                         }
                     }
@@ -36,7 +39,7 @@ public class FileTreeItem extends CheckBoxTreeItem<FileWrapper> {
     }
 
     @Override
-    public ObservableList<TreeItem<FileWrapper>> getChildren() {
+    public ObservableList<TreeItem<File>> getChildren() {
         if (children == null) {
             children = super.getChildren();
             final File file = getValue();
@@ -50,9 +53,11 @@ public class FileTreeItem extends CheckBoxTreeItem<FileWrapper> {
                     return name.endsWith(".mp3");
                 }
             });
-            for (File childFile : childFiles) {
-                final FileTreeItem treeItem = new FileTreeItem(new FileWrapper(childFile));
-                children.add(treeItem);
+            if (childFiles != null) {
+                for (File childFile : childFiles) {
+                    final FileTreeItem treeItem = new FileTreeItem(childFile);
+                    children.add(treeItem);
+                }
             }
             children.sort(new FileTreeItemComparator());
         }

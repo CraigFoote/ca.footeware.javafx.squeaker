@@ -1,14 +1,14 @@
 package ca.footeware.javafx.squeaker;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
+import javafx.collections.ObservableList;
 
 /**
  * Maintains the list of selected items.
  */
 public class SelectionManager {
 
-    private static final ObservableSet<FileTreeItem> selectedSet = FXCollections.observableSet();
+    private static final ObservableList<FileTreeItem> SELECTED = FXCollections.observableArrayList();
 
     /**
      * Hidden constructor.
@@ -17,18 +17,18 @@ public class SelectionManager {
     }
 
     public static void addSelectedItem(FileTreeItem item) {
-        selectedSet.add(item);
+        SELECTED.add(item);
     }
 
     public static void removeSelectedItem(FileTreeItem item) {
-        selectedSet.remove(item);
+        SELECTED.remove(item);
     }
 
-    public static ObservableSet<FileTreeItem> getSelected() {
-        return selectedSet;
+    public static ObservableList<FileTreeItem> getSelected() {
+        return SELECTED;
     }
 
     public static void clear() {
-        selectedSet.clear();
+        SELECTED.clear();
     }
 }

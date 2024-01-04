@@ -4,16 +4,16 @@
  */
 package ca.footeware.javafx.squeaker;
 
-import java.io.File;
-import java.net.URI;
+import java.nio.file.Path;
 import javafx.scene.media.Media;
 
 /**
- * Extends {@link File} to include audio tags.
+ * Encapsulates audio tags.
  */
-public class AudioFile extends File {
+public class Audio {
 
     private String filename;
+    private Path path;
     private String track;
     private String artist;
     private String title;
@@ -26,11 +26,10 @@ public class AudioFile extends File {
     /**
      * Constructor.
      *
-     * @param uri {@link URI}
+     * @param path {@link Path}
      */
-    public AudioFile(URI uri) {
-        super(uri);
-        this.filename = super.getName();
+    public Audio(Path path) {
+        this.path = path;
     }
 
     public String getTrack() {
@@ -81,14 +80,6 @@ public class AudioFile extends File {
         this.genre = genre;
     }
 
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
     public void setSeconds(long seconds) {
         this.seconds = seconds;
     }
@@ -107,5 +98,21 @@ public class AudioFile extends File {
 
     public Media getMedia() {
         return media;
+    }
+
+    public void setPath(Path path) {
+        this.path = path;
+    }
+
+    public Path getPath() {
+        return this.path;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 }
