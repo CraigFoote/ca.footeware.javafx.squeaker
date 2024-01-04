@@ -146,8 +146,8 @@
                                           <ListView fx:id="playListView" />
                                        </content>
                                     </ScrollPane>
-                                    <Button mnemonicParsing="false" onAction="#onSavePlayListButtonAction" prefHeight="40.0" text="&lt;&lt; Save Playlist" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-                                    <Button mnemonicParsing="false" onAction="#onLoadPlayListButtonAction" prefHeight="40.0" text="Load Playlist &gt;&gt;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                                    <Button mnemonicParsing="false" onAction="#onSavePlayListButtonAction" prefHeight="40.0" text="&lt;&lt; Save Playlist" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                                    <Button mnemonicParsing="false" onAction="#onLoadPlayListButtonAction" prefHeight="40.0" text="Load Playlist &gt;&gt;" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
                                  </children>
                               </AnchorPane>
                         </content>

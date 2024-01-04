@@ -121,21 +121,30 @@ public class Controller implements Initializable {
         dialog.setContentText("Enter a name for this new playlist.");
         final Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.addEventFilter(ActionEvent.ACTION, e -> {
-            if (!playlistNameIsValid(dialog.getEditor().getText())) {
+            String name = dialog.getEditor().getText().trim();
+            String message = null;
+            if (name == null || name.isEmpty()) {
+                message = "The name cannot be empty.";
+            }
+            if (!playlistNameIsUnique(name)) {
+                message = "That name already exists, please choose another.";
+            }
+            if (message != null) {
+                dialog.setContentText(message);
                 e.consume();
-                dialog.setContentText("That name already exists, please choose another.");
             }
         });
-        dialog.showAndWait();
-        final String filename = dialog.getEditor().getText().trim() + ".m3u";
-        final String pathname = APP_FOLDER + "playlists" + File.separator + filename;
-        // create and populate playlist
-        PlayList playList = new PlayList(pathname);
-        for (Audio audio : tableView.getItems()) {
-            playList.getItems().add(audio);
-        }
-        writeToDisk(playList);
-        playListView.getItems().add(playList);
+        Optional<String> response = dialog.showAndWait();
+        response.ifPresent(filename -> {
+            filename = filename.trim() + ".m3u";
+            // create and populate playlist
+            PlayList playList = new PlayList(filename);
+            for (Audio audio : tableView.getItems()) {
+                playList.getItems().add(audio);
+            }
+            writeToDisk(playList);
+            playListView.getItems().add(playList);
+        });
     }
 
     @FXML
@@ -426,7 +435,7 @@ public class Controller implements Initializable {
         paused.set(false);
     }
 
-    private boolean playlistNameIsValid(String name) {
+    private boolean playlistNameIsUnique(String name) {
         File file = new File(APP_FOLDER + "playlists");
         String[] existingNamesArray = file.list((File dir, String name1) -> name1.endsWith(".m3u"));
         for (String existingName : existingNamesArray) {
