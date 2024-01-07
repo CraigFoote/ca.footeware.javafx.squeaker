@@ -8,8 +8,8 @@
     <description>JavaFX audio player.</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
         <javafx.version>22-ea+16</javafx.version>
     </properties>
     <dependencies>
@@ -39,9 +39,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.11.0</version>
                 <configuration>
-                    <release>21</release>
+                    <release>22</release>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
@@ -93,17 +93,63 @@
                 </executions>
             </plugin>
 <!--            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
+                <groupId>com.github.akman</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>0.1.6-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>jpackage-installer</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jpackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>ca.footeware.javafx.squeaker.App</mainClass>
-                        </manifest>
-                    </archive>
+                    <dest>$‍{project.build.directory}/jpackage</dest>
+                    <name>Squeaker</name>
+                    <appversion>${project.version}</appversion>
+                    <vendor>Footeware.ca</vendor>
+                    <icon>$‍{project.basedir}/squeaker.png</icon>
+                    <modulepath>
+                        <dependencysets>
+                            <dependencyset>
+                                <includeoutput>true</includeoutput>
+                                <excludeautomatic>true</excludeautomatic>
+                            </dependencyset>
+                        </dependencysets>
+                    </modulepath>
+                    <addmodules>
+                        <addmodule>javafx.fxml</addmodule>
+                        <addmodule>mp3agic</addmodule>
+                        <addmodule>ca.footeware.javafx.squeaker</addmodule>
+                    </addmodules>
+                    <module>ca.footeware.javafx.squeaker/ca.footeware.javafx.squeaker.App</module>
+                    <addlaunchers>
+                        <addlauncher>
+                            <name>squeaker</name>
+                            <module>ca.footeware.javafx.squeaker/ca.footeware.javafx.squeaker.App</module>
+                            <appversion>${project.version}</appversion>
+                            <icon>$‍{project.basedir}/squeaker.png</icon>
+                        </addlauncher>
+                    </addlaunchers>
                 </configuration>
             </plugin>-->
         </plugins>
     </build>
+    
+    <pluginRepositories>
+      <pluginRepository>
+        <id>ossrh</id>
+        <name>OSS Sonatype Snapshots Repository</name>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        <layout>default</layout>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+        <releases>
+          <enabled>false</enabled>
+        </releases>
+      </pluginRepository>
+    </pluginRepositories>
 </project>
